@@ -179,3 +179,4 @@ GRANT ALL ON TABLE public.b2b_discovery_jobs TO anon, authenticated, service_rol
 GRANT ALL ON TABLE public.b2b_scoring_config TO anon, authenticated, service_role;
 GRANT ALL ON TABLE public.b2b_suppression_list TO anon, authenticated, service_role;
 `;
+
