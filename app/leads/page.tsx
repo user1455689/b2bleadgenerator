@@ -19,13 +19,19 @@ import {
   Sparkles,
   Phone,
   Mail,
+  Copy,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
+import { B2B_MIGRATION_SQL } from "@/lib/migration-sql";
 
 export default function LeadDatabasePage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [dbHealth, setDbHealth] = useState<{ connected: boolean; tableExists: boolean; error?: string } | null>(null);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -53,6 +59,9 @@ export default function LeadDatabasePage() {
       const data = await res.json();
       setLeads(data.leads || []);
       setTotal(data.total || 0);
+      if (data.dbHealth) {
+        setDbHealth(data.dbHealth);
+      }
     } finally {
       setLoading(false);
     }
@@ -122,6 +131,64 @@ export default function LeadDatabasePage() {
       />
 
       <main className="px-8 py-6 space-y-6 max-w-7xl">
+        {/* Supabase Schema Provisioning Alert */}
+        {dbHealth && !dbHealth.tableExists && (
+          <div className="p-5 rounded-2xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 space-y-3 animate-in fade-in duration-300">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-amber-200 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 mt-0.5">
+                  <Database className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Supabase Table Provisioning Required</h4>
+                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed">
+                    Your Supabase project (<code className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 rounded text-[11px] font-mono">hyjfnwyfptjwwfbitlqv</code>) is connected, but the <code className="font-mono font-semibold">b2b_leads</code> table has not been initialized in PostgreSQL yet. Any leads harvested in serverless mode are stored temporarily in memory and will disappear upon reload.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <a
+                href="https://supabase.com/dashboard/project/hyjfnwyfptjwwfbitlqv/sql/new"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-sm"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>Open Supabase SQL Editor</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(B2B_MIGRATION_SQL);
+                  setCopiedSql(true);
+                  setTimeout(() => setCopiedSql(false), 3000);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-amber-900/40 border border-amber-300 dark:border-amber-800 hover:bg-amber-100 transition-colors"
+              >
+                {copiedSql ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                    <span className="text-emerald-700 dark:text-emerald-300 font-bold">SQL Copied to Clipboard!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    <span>Copy Migration SQL</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={fetchLeads}
+                className="text-xs text-amber-700 dark:text-amber-300 hover:underline px-2 py-1 font-medium"
+              >
+                Re-check Connection
+              </button>
+            </div>
+          </div>
+        )}
         {/* Search & Filter Toolbar */}
         <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm space-y-4">
           <form onSubmit={handleSearchSubmit} className="flex gap-3">

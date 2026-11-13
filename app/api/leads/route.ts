@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { leadStore } from "@/lib/supabase-admin";
+import { leadStore, checkDatabaseHealth } from "@/lib/supabase-admin";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,15 +12,18 @@ export async function GET(req: NextRequest) {
     const page = searchParams.get("page") ? Number(searchParams.get("page")) : 1;
     const limit = searchParams.get("limit") ? Number(searchParams.get("limit")) : 25;
 
-    const result = await leadStore.getLeads({
-      search,
-      industry,
-      city,
-      status,
-      minScore,
-      page,
-      limit,
-    });
+    const [result, dbHealth] = await Promise.all([
+      leadStore.getLeads({
+        search,
+        industry,
+        city,
+        status,
+        minScore,
+        page,
+        limit,
+      }),
+      checkDatabaseHealth(),
+    ]);
 
     return NextResponse.json({
       leads: result.leads,
@@ -28,6 +31,7 @@ export async function GET(req: NextRequest) {
       page,
       limit,
       totalPages: Math.ceil(result.total / limit),
+      dbHealth,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 500 });

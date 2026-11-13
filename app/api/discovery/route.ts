@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LeadDiscoveryAgent } from "@/lib/agents/discovery-agent";
-import { leadStore } from "@/lib/supabase-admin";
+import { leadStore, checkDatabaseHealth } from "@/lib/supabase-admin";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -17,17 +17,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await LeadDiscoveryAgent.runDiscovery({
-      industry,
-      location,
-      targetCount: Number(targetCount) || 10,
-      triggerSource: "manual",
-    });
+    const [result, dbHealth] = await Promise.all([
+      LeadDiscoveryAgent.runDiscovery({
+        industry,
+        location,
+        targetCount: Number(targetCount) || 10,
+        triggerSource: "manual",
+      }),
+      checkDatabaseHealth(),
+    ]);
 
     return NextResponse.json({
       success: true,
       job: result.job,
       leads: result.discoveredLeads,
+      dbHealth,
       metrics: {
         discovered: result.discoveredLeads.length,
         duplicatesSkipped: result.duplicatesSkipped,
@@ -45,8 +49,11 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const jobs = await leadStore.getJobs();
-    return NextResponse.json({ jobs });
+    const [jobs, dbHealth] = await Promise.all([
+      leadStore.getJobs(),
+      checkDatabaseHealth(),
+    ]);
+    return NextResponse.json({ jobs, dbHealth });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 500 });
   }

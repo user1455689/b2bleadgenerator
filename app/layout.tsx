@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AppShell } from "@/components/AppShell";
 
 export const metadata: Metadata = {
-  title: "Accknown Lead Intelligence | Superadmin Growth Platform",
-  description: "AI-Powered B2B Lead Generation & Intelligence Platform for Accknown Cloud ERP Nepal",
+  title: "Accknown B2B Lead Intelligence | Enterprise Growth Platform",
+  description: "AI-Powered B2B Lead Generation & Live Market Intelligence Platform for Accknown Cloud ERP Nepal",
 };
 
 export default function RootLayout({
@@ -14,13 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-        <AppSidebar />
-        <div className="flex-1 ml-64 min-w-0 flex flex-col min-h-screen">
-          {children}
-        </div>
+      <body className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-brand-500 selection:text-white">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
 }
-

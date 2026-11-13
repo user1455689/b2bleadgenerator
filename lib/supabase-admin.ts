@@ -19,21 +19,46 @@ export const supabaseServer = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE, 
   },
 });
 
-let remoteDisabledUntil = 0;
-
-function fastRemote<T>(promise: PromiseLike<T>, timeoutMs = 400): Promise<T> {
-  if (Date.now() < remoteDisabledUntil) {
-    return Promise.reject(new Error("Remote circuit open"));
-  }
+function fastRemote<T>(promise: PromiseLike<T>, timeoutMs = 8000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
       setTimeout(() => {
-        remoteDisabledUntil = Date.now() + 60000; // Disable remote retry for 60s
-        reject(new Error("Supabase remote timeout"));
+        reject(new Error(`Supabase remote query timed out after ${timeoutMs}ms`));
       }, timeoutMs)
     ),
   ]);
+}
+
+export async function checkDatabaseHealth(): Promise<{
+  connected: boolean;
+  tableExists: boolean;
+  error?: string;
+}> {
+  try {
+    const { error } = await fastRemote<any>(
+      supabaseServer.from("b2b_leads").select("id").limit(1)
+    );
+    if (error) {
+      const isMissingTable =
+        error.code === "PGRST205" ||
+        error.code === "42P01" ||
+        (error.message || "").toLowerCase().includes("could not find the table") ||
+        (error.message || "").toLowerCase().includes("does not exist");
+      return {
+        connected: true,
+        tableExists: !isMissingTable,
+        error: error.message,
+      };
+    }
+    return { connected: true, tableExists: true };
+  } catch (err: any) {
+    return {
+      connected: false,
+      tableExists: false,
+      error: err?.message || "Connection timed out",
+    };
+  }
 }
 
 // Resilient memory store cache for zero-downtime evaluation and fast local demo
@@ -132,11 +157,17 @@ export const leadStore = {
           )
       );
 
-      if (!error && data && data.length > 0) {
-        return { leads: data as Lead[], total: count || data.length };
+      if (!error && data) {
+        return {
+          leads: data as Lead[],
+          total: count !== null && count !== undefined ? count : data.length,
+        };
       }
-    } catch {
-      // Fallback seamlessly to local synchronized store
+      if (error) {
+        console.warn("[Supabase getLeads Warning]", error.message);
+      }
+    } catch (err: any) {
+      console.warn("[Supabase getLeads Exception]", err?.message);
     }
 
     // Memory Store filter fallback
@@ -242,9 +273,12 @@ export const leadStore = {
     };
 
     try {
-      await fastRemote(supabaseServer.from("b2b_leads").upsert(fullLead));
-    } catch {
-      // table might be provisioning or offline
+      const res = await fastRemote<any>(supabaseServer.from("b2b_leads").upsert(fullLead));
+      if (res?.error) {
+        console.warn("[Supabase saveLead Warning]", res.error.message);
+      }
+    } catch (e: any) {
+      console.warn("[Supabase saveLead Note]", e?.message);
     }
 
     store.leads.set(id, fullLead);
