@@ -24,7 +24,7 @@ export default function AgentConfigurationPage() {
     config_name: "default",
     ai_provider: "gemini",
     ai_api_key: "",
-    ai_model: "gemini-3.5-flash-lite",
+    ai_model: "gemini-1.5-flash",
     industry_weight: 25,
     scale_weight: 20,
     inventory_complexity_weight: 20,
@@ -145,10 +145,9 @@ export default function AgentConfigurationPage() {
     switch (provider) {
       case "gemini":
         return [
-          { id: "gemini-3.5-flash-lite", name: "Gemini 3.5 Flash Lite (Verified Active • Sub-second)" },
-          { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash (Deep Research & Qualification)" },
-          { id: "gemini-3.7-flash", name: "Gemini 3.7 Flash (High Performance)" },
-          { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash (Latest Flagship)" },
+          { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (Recommended • Fast, Verified Active)" },
+          { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro (Deep Research & Complex Qualification)" },
+          { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash (Next-Gen Ultra Fast)" },
         ];
       case "openai":
         return [

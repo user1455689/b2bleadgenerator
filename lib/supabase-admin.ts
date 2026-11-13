@@ -59,7 +59,7 @@ if (!global.__superadmin_store) {
       config_name: "default",
       ai_provider: "gemini",
       ai_api_key: process.env.GEMINI_API_KEY || "",
-      ai_model: "gemini-3.5-flash-lite",
+      ai_model: "gemini-1.5-flash",
       industry_weight: 25,
       scale_weight: 20,
       inventory_complexity_weight: 20,

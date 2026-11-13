@@ -144,44 +144,95 @@ export class LeadDiscoveryAgent {
         (l) => l.city.toLowerCase() === locationQuery.toLowerCase()
       ) || NEPAL_LOCATIONS[0];
 
-    // 1. External Serper / Google Search integration if API key is provided
+    // 1. External Serper / Google Maps & Search integration if API key is provided
     if (serperKey) {
+      // 1A. Google Maps Places Search (Live physical addresses, verified phone lines, and business profiles)
       try {
-        const query = `${matchedIndustry.name} in ${matchedLocation.city} Nepal phone email website directory`;
-        const res = await fetch("https://google.serper.dev/search", {
+        const placesQuery = `${matchedIndustry.name} in ${matchedLocation.city} Nepal`;
+        const placesRes = await fetch("https://google.serper.dev/places", {
           method: "POST",
           headers: {
             "X-API-KEY": serperKey,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ q: query, num: limit, gl: "np" }),
+          body: JSON.stringify({
+            q: placesQuery,
+            location: `${matchedLocation.city}, Nepal`,
+            gl: "np",
+            hl: "en",
+          }),
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          const organic = data.organic || [];
-          for (const item of organic) {
-            const parsed = this.extractContactFromSnippet(item.title, item.snippet, item.link);
-            if (parsed.name && parsed.name.length > 2) {
-              results.push({
-                company_name: parsed.name,
-                industry: matchedIndustry.name,
-                city: matchedLocation.city,
-                district: matchedLocation.district,
-                province: matchedLocation.province,
-                website: parsed.website,
-                source_name: "Google Search (Live Index)",
-                source_url: item.link,
-                business_description: item.snippet,
-                public_phone: parsed.phone,
-                public_email: parsed.email,
-                verification_status: parsed.phone ? "verified_direct" : "partially_verified",
-              });
-            }
+        if (placesRes.ok) {
+          const placesData = await placesRes.json();
+          const places = placesData.places || [];
+          for (const p of places) {
+            if (!p.title || p.title.length < 2) continue;
+            results.push({
+              company_name: p.title.trim(),
+              industry: matchedIndustry.name,
+              city: matchedLocation.city,
+              district: matchedLocation.district,
+              province: matchedLocation.province,
+              business_address: p.address || `${matchedLocation.city}, Nepal`,
+              public_phone: p.phoneNumber || undefined,
+              website: p.website || undefined,
+              source_name: "Google Maps (Live Places API)",
+              source_url: p.cid
+                ? `https://maps.google.com/?cid=${p.cid}`
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.title + ' ' + matchedLocation.city)}`,
+              business_description: `${p.category || matchedIndustry.name} in ${p.address || matchedLocation.city}.${p.rating ? ` Google Maps rating: ${p.rating}★ (${p.ratingCount || 0} reviews).` : ''}`,
+              verification_status: p.phoneNumber ? "verified_direct" : "partially_verified",
+            });
           }
         }
       } catch (e) {
-        console.warn("[DiscoveryAgent] Serper call failed:", e);
+        console.warn("[DiscoveryAgent] Serper Places call failed:", e);
+      }
+
+      // 1B. Google Organic Search (for additional web and directory listings)
+      if (results.length < limit) {
+        try {
+          const query = `${matchedIndustry.name} in ${matchedLocation.city} Nepal phone email website directory`;
+          const res = await fetch("https://google.serper.dev/search", {
+            method: "POST",
+            headers: {
+              "X-API-KEY": serperKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ q: query, num: limit, gl: "np" }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const organic = data.organic || [];
+            for (const item of organic) {
+              const parsed = this.extractContactFromSnippet(item.title, item.snippet, item.link);
+              if (
+                parsed.name &&
+                parsed.name.length > 2 &&
+                !results.some((r) => r.company_name?.toLowerCase() === parsed.name.toLowerCase())
+              ) {
+                results.push({
+                  company_name: parsed.name,
+                  industry: matchedIndustry.name,
+                  city: matchedLocation.city,
+                  district: matchedLocation.district,
+                  province: matchedLocation.province,
+                  website: parsed.website,
+                  source_name: "Google Search (Live Index)",
+                  source_url: item.link,
+                  business_description: item.snippet,
+                  public_phone: parsed.phone,
+                  public_email: parsed.email,
+                  verification_status: parsed.phone ? "verified_direct" : "partially_verified",
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("[DiscoveryAgent] Serper organic call failed:", e);
+        }
       }
     }
 

@@ -25,7 +25,7 @@ export async function getActiveAICredentials() {
   const model =
     config.ai_model ||
     (provider === "gemini"
-      ? "gemini-3.5-flash-lite"
+      ? "gemini-1.5-flash"
       : provider === "openai"
       ? "gpt-4o-mini"
       : provider === "claude"
@@ -40,16 +40,16 @@ export async function getActiveAICredentials() {
 export async function testAIConnection(
   provider: AIProvider,
   apiKey: string,
-  model = "gemini-3.5-flash-lite"
+  model = "gemini-1.5-flash"
 ): Promise<{ success: boolean; message: string; latencyMs: number }> {
   const start = Date.now();
   if (provider === "gemini") {
     if (!apiKey) throw new Error("Gemini API key is required");
     const effectiveModel =
-      model && (model.startsWith("gemini-3.") || model.startsWith("gemini-2."))
+      model && (model.startsWith("gemini-1.") || model.startsWith("gemini-2."))
         ? model
-        : "gemini-3.5-flash-lite";
-    const endpoint = `https://generativelanguage.googleapis.com/v1/models/${effectiveModel}:generateContent?key=${apiKey}`;
+        : "gemini-1.5-flash";
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${effectiveModel}:generateContent?key=${apiKey}`;
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       "x-goog-api-key": apiKey,
@@ -168,13 +168,15 @@ Respond ONLY with a valid JSON array matching this schema:
 
   try {
     const modelsToTry = [
-      model && model.startsWith("gemini-3.") ? model : "gemini-3.5-flash-lite",
-      "gemini-3.5-flash",
-      "gemini-3.7-flash",
+      model && (model.startsWith("gemini-1.") || model.startsWith("gemini-2."))
+        ? model
+        : "gemini-1.5-flash",
+      "gemini-1.5-pro",
+      "gemini-2.0-flash",
     ];
 
     for (const m of modelsToTry) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1/models/${m}:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         "x-goog-api-key": apiKey,
@@ -315,13 +317,15 @@ Respond ONLY with a valid JSON object matching this schema:
 
       if (provider === "gemini") {
         const modelsToTry = [
-          model && model.startsWith("gemini-3.") ? model : "gemini-3.5-flash-lite",
-          "gemini-3.5-flash",
-          "gemini-3.7-flash",
+          model && (model.startsWith("gemini-1.") || model.startsWith("gemini-2."))
+            ? model
+            : "gemini-1.5-flash",
+          "gemini-1.5-pro",
+          "gemini-2.0-flash",
         ];
 
         for (const m of modelsToTry) {
-          const endpoint = `https://generativelanguage.googleapis.com/v1/models/${m}:generateContent?key=${apiKey}`;
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
           const headers: Record<string, string> = {
             "Content-Type": "application/json",
             "x-goog-api-key": apiKey,

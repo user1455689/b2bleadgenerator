@@ -88,3 +88,4 @@ npm run dev
 The database tables are provisioned via the Supabase SQL migration:
 `supabase/migrations/20261105000000_b2b_lead_generation_intelligence.sql`.
 Tables include `b2b_leads`, `b2b_lead_research`, `b2b_lead_outreach`, `b2b_discovery_jobs`, `b2b_discovery_logs`, `b2b_agent_configs`, and `b2b_suppression_list`.
+
