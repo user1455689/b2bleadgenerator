@@ -18,6 +18,7 @@ export async function getActiveAICredentials() {
   let apiKey = config.ai_api_key || "";
   if (!apiKey) {
     if (provider === "gemini") apiKey = process.env.GEMINI_API_KEY || "";
+    else if (provider === "vercel-gateway") apiKey = process.env.AI_GATEWAY_API_KEY || "";
     else if (provider === "openai") apiKey = process.env.OPENAI_API_KEY || "";
     else if (provider === "claude") apiKey = process.env.ANTHROPIC_API_KEY || "";
     else if (provider === "groq") apiKey = process.env.GROQ_API_KEY || "";
@@ -26,6 +27,8 @@ export async function getActiveAICredentials() {
     config.ai_model ||
     (provider === "gemini"
       ? "gemini-1.5-flash"
+      : provider === "vercel-gateway"
+      ? "moonshotai/kimi-k3"
       : provider === "openai"
       ? "gpt-4o-mini"
       : provider === "claude"
@@ -119,6 +122,17 @@ export async function testAIConnection(
     return { success: true, message: `Connected to Anthropic Claude (${model}) successfully!`, latencyMs };
   }
 
+  if (provider === "vercel-gateway") {
+    const { generateText } = await import("ai");
+    const targetModel = model || "moonshotai/kimi-k3";
+    const res = await generateText({
+      model: targetModel as any,
+      prompt: "Respond with 'OK' if connected.",
+    });
+    const latencyMs = Date.now() - start;
+    return { success: true, message: `Connected to Vercel AI Gateway (${targetModel}) successfully! Response: ${res.text.slice(0, 50)}`, latencyMs };
+  }
+
   throw new Error(`Unsupported AI provider: ${provider}`);
 }
 
@@ -132,7 +146,7 @@ export async function discoverRealLeadsWithAI(
   count = 10
 ): Promise<Array<Partial<Lead>>> {
   const { provider, apiKey, model } = await getActiveAICredentials();
-  if (!apiKey || provider !== "gemini") {
+  if (!apiKey || (provider !== "gemini" && provider !== "vercel-gateway")) {
     return [];
   }
 
@@ -165,6 +179,43 @@ Respond ONLY with a valid JSON array matching this schema:
     "business_description": "Precise summary of commercial operations, products sold, and wholesale/manufacturing scale."
   }
 ]`;
+
+  if (provider === "vercel-gateway") {
+    try {
+      const { generateText } = await import("ai");
+      const targetModel = model || "moonshotai/kimi-k3";
+      const { text } = await generateText({
+        model: targetModel as any,
+        prompt: `${prompt}\nRespond ONLY with a raw JSON array. Do not include markdown code fence formatting.`,
+      });
+      const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((item) => ({
+          company_name: item.company_name,
+          industry,
+          city: location,
+          district: item.district || location,
+          province: item.province,
+          business_address: item.business_address,
+          website: item.website,
+          public_phone: item.public_phone,
+          public_email: item.public_email,
+          contact_person: item.contact_person,
+          contact_designation: item.contact_designation || "Director",
+          source_name: `Vercel AI Gateway (${targetModel})`,
+          source_url:
+            item.source_url ||
+            item.website ||
+            `https://nepalyp.com/search/${encodeURIComponent(industry)}/${encodeURIComponent(location)}`,
+          business_description: item.business_description,
+          verification_status: item.public_phone ? "verified_direct" : "partially_verified",
+        }));
+      }
+    } catch (err) {
+      console.warn("[Vercel AI Gateway Discovery] Error:", err);
+    }
+    return [];
+  }
 
   try {
     const modelsToTry = [
@@ -315,7 +366,15 @@ Respond ONLY with a valid JSON object matching this schema:
     try {
       let rawJsonText = "";
 
-      if (provider === "gemini") {
+      if (provider === "vercel-gateway") {
+        const { generateText } = await import("ai");
+        const targetModel = model || "moonshotai/kimi-k3";
+        const { text } = await generateText({
+          model: targetModel as any,
+          prompt: `${prompt}\nRespond ONLY with the JSON object. Do not include markdown code fence formatting.`,
+        });
+        rawJsonText = text.replace(/```json|```/g, "").trim();
+      } else if (provider === "gemini") {
         const modelsToTry = [
           model && (model.startsWith("gemini-1.") || model.startsWith("gemini-2."))
             ? model

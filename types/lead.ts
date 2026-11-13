@@ -157,7 +157,7 @@ export interface DiscoveryJob {
   completed_at?: string;
 }
 
-export type AIProvider = "gemini" | "openai" | "claude" | "groq" | "ollama";
+export type AIProvider = "gemini" | "openai" | "claude" | "groq" | "ollama" | "vercel-gateway";
 
 export interface ScoringConfig {
   id: string;

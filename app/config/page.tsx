@@ -143,6 +143,12 @@ export default function AgentConfigurationPage() {
 
   const getRecommendedModels = (provider?: AIProvider) => {
     switch (provider) {
+      case "vercel-gateway":
+        return [
+          { id: "moonshotai/kimi-k3", name: "Moonshot AI Kimi K3 (Vercel AI Gateway)" },
+          { id: "openai/gpt-4o", name: "OpenAI GPT-4o (Vercel AI Gateway)" },
+          { id: "anthropic/claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet (Vercel AI Gateway)" },
+        ];
       case "gemini":
         return [
           { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (Recommended • Fast, Verified Active)" },
@@ -230,6 +236,7 @@ export default function AgentConfigurationPage() {
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-medium text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               >
                 <option value="gemini">Google Gemini (Recommended - Fast & Structured)</option>
+                <option value="vercel-gateway">Vercel AI Gateway (Moonshot Kimi K3, GPT-4o, Claude)</option>
                 <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
                 <option value="claude">Anthropic Claude (Sonnet 3.5)</option>
                 <option value="groq">Groq Cloud (Llama 3.3 70B)</option>
