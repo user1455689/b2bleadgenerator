@@ -8,9 +8,20 @@ import {
   SuppressionEntry,
 } from "../types/lead";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hyjfnwyfptjwwfbitlqv.supabase.co";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5amZud3lmcHRqd3dmYml0bHF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTcwMTQsImV4cCI6MjA3NzgzMzAxNH0.efUiL9zcKgJwE5ho_pjvdtFiJsDzJxmIbqDlsFrpF68";
-const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://meramyjzbdmjhegvspop.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  process.env.SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_JbbAbtkncFQ6oIatHmniAA_V4sfwLp4";
+
+const SUPABASE_SERVICE_ROLE =
+  process.env.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  SUPABASE_ANON_KEY;
 
 export const supabaseServer = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE, {
   auth: {

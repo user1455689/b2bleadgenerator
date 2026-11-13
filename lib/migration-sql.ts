@@ -1,5 +1,5 @@
 export const B2B_MIGRATION_SQL = `-- Accknown B2B Lead Generation and Intelligence Schema
--- Run this in Supabase SQL Editor: https://supabase.com/dashboard/project/hyjfnwyfptjwwfbitlqv/sql/new
+-- Run this in Supabase SQL Editor: https://supabase.com/dashboard/project/meramyjzbdmjhegvspop/sql/new
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'b2b_lead_status') THEN

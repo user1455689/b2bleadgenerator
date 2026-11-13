@@ -13,6 +13,7 @@
     "test": "tsx scripts/test-agents.mjs"
   },
   "dependencies": {
+    "@supabase/server": "^1.9.2",
     "@supabase/supabase-js": "^2.46.1",
     "ai": "^7.0.172",
     "clsx": "^2.1.1",

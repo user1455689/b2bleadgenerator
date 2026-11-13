@@ -100,7 +100,7 @@ export default function AutomationSettingsPage() {
                 <div>
                   <h4 className="font-bold text-sm">Supabase Database Tables Not Initialized</h4>
                   <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed">
-                    Your Supabase project (<code className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 rounded text-[11px] font-mono">hyjfnwyfptjwwfbitlqv</code>) is connected, but the <code className="font-mono font-semibold">b2b_discovery_jobs</code> &amp; <code className="font-mono font-semibold">b2b_suppression_list</code> tables have not been created yet in PostgreSQL.
+                    Your Supabase project (<code className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 rounded text-[11px] font-mono">meramyjzbdmjhegvspop</code>) is connected, but the <code className="font-mono font-semibold">b2b_discovery_jobs</code> &amp; <code className="font-mono font-semibold">b2b_suppression_list</code> tables have not been created yet in PostgreSQL.
                   </p>
                 </div>
               </div>
@@ -108,7 +108,7 @@ export default function AutomationSettingsPage() {
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <a
-                href="https://supabase.com/dashboard/project/hyjfnwyfptjwwfbitlqv/sql/new"
+                href="https://supabase.com/dashboard/project/meramyjzbdmjhegvspop/sql/new"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-sm"
